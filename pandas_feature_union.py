@@ -9,8 +9,12 @@ class PandasFeatureUnion(FeatureUnion):
     def fit_transform(self, X, y=None, **fit_params):
         self._validate_transformers()
         result = Parallel(n_jobs=self.n_jobs)(
-            delayed(_fit_transform_one)(trans, weight, X, y,
-                                        **fit_params)
+            delayed(_fit_transform_one)(
+                transformer=trans,
+                X=X,
+                y=y,
+                weight=weight,
+                **fit_params)
             for name, trans, weight in self._iter())
 
         if not result:
@@ -29,7 +33,11 @@ class PandasFeatureUnion(FeatureUnion):
 
     def transform(self, X):
         Xs = Parallel(n_jobs=self.n_jobs)(
-            delayed(_transform_one)(trans, weight, X)
+            delayed(_transform_one)(
+                transformer=trans,
+                X=X,
+                y=None,
+                weight=weight)
             for name, trans, weight in self._iter())
         if not Xs:
             # All transformers are None
